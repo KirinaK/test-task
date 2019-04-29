@@ -1,5 +1,6 @@
 <div class="rxjs">
   <button mat-button (click)="startStreams()">Start</button>
+  <p class="rxjs__sum" *ngIf="isStarted">Sum: {{idSum}}</p>
   <ul class="rxjs__list-1">
     First stream
   </ul>

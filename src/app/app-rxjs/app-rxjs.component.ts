@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { timer, interval, Observable, combineLatest } from 'rxjs';
-import { map, shareReplay } from 'rxjs/operators';
+import { Component, OnDestroy } from '@angular/core';
+import { interval, Observable, Observer, pipe, Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
 import { ObjectStream } from '../shared/object-stream.interface';
 
 @Component({
@@ -8,63 +9,83 @@ import { ObjectStream } from '../shared/object-stream.interface';
   templateUrl: './app-rxjs.component.html',
   styleUrls: ['./app-rxjs.component.scss']
 })
-export class AppRxjsComponent implements OnInit {
+export class AppRxjsComponent implements OnDestroy {
   public obj: ObjectStream = {id: null, streamNumber: null };
+  public idSum: number;
+  public isStarted = false;
+  private destroy$: Subject<any> = new Subject();
+  private subscription: Subscription;
 
   constructor() { }
 
-  ngOnInit() {
+  ngOnDestroy() {
+    this.subscription && this.subscription.unsubscribe();
   }
 
-  startStreams() {
-    this.first();
-    this.stream(1500, 2);
-    this.stream(2000, 3);
-    this.forthStream();
-    // this.first();
-    // this.second();
+  public startStreams(): void {
+    this.isStarted = true;
+    this.idSum = 0;
+    this.first(1);
+    this.second(2);
+    this.third(3);
+    this.createFourthStream(4);
   }
 
-  stream(time, streamNumber) {
-    const period = interval(time);
-    const creating = period.subscribe(id => {
-      this.obj.id = id++;
-      this.obj.streamNumber = streamNumber;
-      this.createList(streamNumber, id);
+  private createStream(time: number, stream: number): number {
+    const period = interval(time).pipe(takeUntil(this.destroy$));
+    this.subscription = period.subscribe((id: number) => {
+      this.obj = {id: id++, streamNumber: stream};
+      this.createList(stream, id);
+      this.getSumId(stream, id);
     });
 
-    setTimeout(() => creating.unsubscribe(), 10000);
+    return this.obj.id;
   }
 
-  createList(streamNumber, id) {
-    const ul = document.getElementsByClassName(`rxjs__list-${streamNumber}`)[0];
+  private createList(stream: number, id: number): void {
+    const ul = document.getElementsByClassName(`rxjs__list-${stream}`)[0];
     const li = document.createElement('li');
-    li.setAttribute('class','stream__item');
-    li.innerHTML = id;
+    li.setAttribute('class', 'stream__item');
+    (id) ? li.innerHTML = id.toString() : li.style.display = 'none';
     ul.appendChild(li);
   }
 
-  first() {
-    this.stream(1000,1);
+  private first(stream: number): void {
+    this.createStream(1000, stream);
   }
 
-  forthStream() {
-   interval(1000).pipe(
-     map(() => this.first())
-   );
+  private second(stream: number): void {
+    this.createStream(1500, stream);
   }
 
-
-  test() {
-    // const combinedTimers = combineLatest(this.first(), this.forthStream());
-    // combinedTimers.subscribe(value => console.log(value));
-  // let stream2 = new Observable
-  // .interval(2000)
-  // .withLatestFrom(this.first, (stream2Value, stream1Value) => stream1Value)
-  // .do((stream1Value) => console.log("value:", stream1Value));
-
-// stream2.subscribe();
-
+  private third(stream: number): void {
+    this.createStream(2000, stream);
   }
 
+  private createFourthStream(stream: number): void {
+    const fourthStream = Observable.create((observer: Observer<any>) => {
+      observer.next(this.first(stream));
+      setTimeout(() => observer.next(this.second(stream)), 10000);
+      setTimeout(() => observer.next(this.third(stream)), 20000);
+      setTimeout(() => observer.complete(), 30000);
+    });
+
+    this.subscription = fourthStream.subscribe((id: number) => {
+        this.createList(4, id);
+        this.getSumId(4, id);
+      },
+      (error: string) => console.log(error)
+    );
+
+    setTimeout(() => {
+      this.destroy$.next();
+      this.subscription.unsubscribe();
+    }, 30000);
+  }
+
+  private getSumId(stream, id): number {
+    if (stream === 4 && id) {
+      return this.idSum += id;
+    }
+  }
 }

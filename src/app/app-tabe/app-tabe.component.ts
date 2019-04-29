@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatSort, MatTableDataSource } from '@angular/material';
+
 import { ELEMENT_DATA } from '../shared/constants';
 
 @Component({

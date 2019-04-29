@@ -8,7 +8,7 @@ import { AppStartPageComponent } from './app-start-page/app-start-page.component
 const routes: Routes = [
   { path: '', redirectTo: '/tabe', pathMatch: 'full' },
   { path: 'tabe', component: AppTabeComponent },
-  { path: 'start', component: AppStartPageComponent },
+  { path: 'start-page', component: AppStartPageComponent },
   { path: 'rxjs', component: AppRxjsComponent}
 ];
 
