@@ -1,1 +1,23 @@
 /* You can add global styles to this file, and also import other style files */
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+  &.dark-background {
+    background: #000;
+    opacity: 0.75 !important;
+  }
+}
+
+.tabe-preview {
+  width: 60% !important;
+
+  app-app-tabe {
+    width: 100% !important;
+  }
+}
